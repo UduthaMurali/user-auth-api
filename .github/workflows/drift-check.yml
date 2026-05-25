@@ -1,0 +1,72 @@
+name: Config Drift Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  # ── Phase 1: Base app — NO DRIFT ──────────────────────────────────────────
+  drift-base:
+    name: "Phase 1 — Base App (expect: no drift)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Drift Detector
+        uses: UduthaMurali/config-drift-detector@v1
+        with:
+          source-paths:  "app.py"
+          config-paths:  "Dockerfile, docker-compose.yml, k8s/deployment.yaml, .env.example"
+          languages:     "python"
+          fail-on-drift: "true"
+
+  # ── Phase 2: + monitoring.py — LOW DRIFT (2 vars) ─────────────────────────
+  drift-low:
+    name: "Phase 2 — Monitoring Feature (LOW drift: 2 vars)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Drift Detector
+        uses: UduthaMurali/config-drift-detector@v1
+        with:
+          source-paths:  "app.py, monitoring.py"
+          config-paths:  "Dockerfile, docker-compose.yml, k8s/deployment.yaml, .env.example"
+          languages:     "python"
+          fail-on-drift: "true"
+        # Missing: SENTRY_DSN (critical), LOG_LEVEL (warning)
+
+  # ── Phase 3: + email.py — MEDIUM DRIFT (4 vars) ───────────────────────────
+  drift-medium:
+    name: "Phase 3 — Email Feature (MEDIUM drift: 4 vars)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Drift Detector
+        uses: UduthaMurali/config-drift-detector@v1
+        with:
+          source-paths:  "app.py, monitoring.py, email.py"
+          config-paths:  "Dockerfile, docker-compose.yml, k8s/deployment.yaml, .env.example"
+          languages:     "python"
+          fail-on-drift: "true"
+        # Missing: SENTRY_DSN, SMTP_HOST, SMTP_USER, SMTP_PASSWORD (critical)
+        #          LOG_LEVEL, SMTP_PORT (warning)
+
+  # ── Phase 4: + oauth.py — HEAVY DRIFT (7 vars) ────────────────────────────
+  drift-heavy:
+    name: "Phase 4 — OAuth+Payments (HEAVY drift: 7 vars)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Drift Detector
+        uses: UduthaMurali/config-drift-detector@v1
+        with:
+          source-paths:  "app.py, monitoring.py, email.py, oauth.py"
+          config-paths:  "Dockerfile, docker-compose.yml, k8s/deployment.yaml, .env.example"
+          languages:     "python"
+          fail-on-drift: "true"
+        # Missing: SENTRY_DSN, SMTP_HOST, SMTP_USER, SMTP_PASSWORD,
+        #          GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, REDIS_URL,
+        #          STRIPE_API_KEY, STRIPE_WEBHOOK_SECRET, JWT_REFRESH_SECRET (critical)
+        #          LOG_LEVEL, SMTP_PORT, OAUTH_REDIRECT_URI (warning)
