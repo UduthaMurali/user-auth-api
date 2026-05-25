@@ -7,11 +7,9 @@ on:
     branches: [main]
 
 jobs:
-
-  drift-check:
-    name: "Detect Config Drift (All Phases)"
+  drift:
+    name: "Detect Config Drift"
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout user-auth-api
         uses: actions/checkout@v4
@@ -27,58 +25,13 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install drift detector dependencies
+      - name: Install drift detector
         run: pip install -r drift-tool/requirements.txt
 
-      # ── Phase 1: Base app only — expect NO DRIFT ──────────────────────────
-      - name: "Phase 1 — Base App (expect: no drift)"
+      - name: Run Config Drift Detector
         run: |
-          echo "======================================"
-          echo "  PHASE 1 — BASE APP"
-          echo "======================================"
           python drift-tool/main.py \
-            --source app.py \
-            --config Dockerfile,docker-compose.yml,k8s/deployment.yaml,.env.example \
-            --languages python || true
-
-      # ── Phase 2: + monitoring.py — LOW DRIFT ──────────────────────────────
-      - name: "Phase 2 — Monitoring Feature (LOW drift)"
-        run: |
-          echo "======================================"
-          echo "  PHASE 2 — LOW DRIFT"
-          echo "  Added: monitoring.py"
-          echo "  Missing vars: SENTRY_DSN, LOG_LEVEL"
-          echo "======================================"
-          python drift-tool/main.py \
-            --source app.py,monitoring.py \
-            --config Dockerfile,docker-compose.yml,k8s/deployment.yaml,.env.example \
-            --languages python || true
-
-      # ── Phase 3: + email.py — MEDIUM DRIFT ───────────────────────────────
-      - name: "Phase 3 — Email Feature (MEDIUM drift)"
-        run: |
-          echo "======================================"
-          echo "  PHASE 3 — MEDIUM DRIFT"
-          echo "  Added: email.py"
-          echo "  Missing vars: SMTP_HOST, SMTP_USER, SMTP_PASSWORD, SMTP_PORT"
-          echo "======================================"
-          python drift-tool/main.py \
-            --source app.py,monitoring.py,email.py \
-            --config Dockerfile,docker-compose.yml,k8s/deployment.yaml,.env.example \
-            --languages python || true
-
-      # ── Phase 4: + oauth.py — HEAVY DRIFT ────────────────────────────────
-      - name: "Phase 4 — OAuth+Payments (HEAVY drift)"
-        run: |
-          echo "======================================"
-          echo "  PHASE 4 — HEAVY DRIFT"
-          echo "  Added: oauth.py"
-          echo "  Missing: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,"
-          echo "           REDIS_URL, STRIPE_API_KEY,"
-          echo "           STRIPE_WEBHOOK_SECRET, JWT_REFRESH_SECRET"
-          echo "======================================"
-          python drift-tool/main.py \
-            --source app.py,monitoring.py,email.py,oauth.py \
+            --source . \
             --config Dockerfile,docker-compose.yml,k8s/deployment.yaml,.env.example \
             --languages python \
             --fail-on-drift

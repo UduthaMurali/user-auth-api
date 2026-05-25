@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Auth API</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+
+    header { background: #1e293b; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+    header h1 { font-size: 1.4rem; color: #38bdf8; font-weight: 700; }
+    .badge { background: #22c55e; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+
+    .hero { text-align: center; padding: 60px 20px 40px; }
+    .hero h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; }
+    .hero p { color: #94a3b8; font-size: 1rem; max-width: 500px; margin: 0 auto 40px; }
+
+    .cards { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 0 40px 60px; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 28px; width: 220px; text-align: center; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-4px); }
+    .card .icon { font-size: 2rem; margin-bottom: 12px; }
+    .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .card p { color: #94a3b8; font-size: 0.8rem; }
+
+    .endpoints { max-width: 700px; margin: 0 auto 60px; padding: 0 20px; }
+    .endpoints h3 { text-align: center; font-size: 1.2rem; margin-bottom: 20px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; }
+    .endpoint { display: flex; align-items: center; gap: 16px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 14px 20px; margin-bottom: 10px; }
+    .method { font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; min-width: 50px; text-align: center; }
+    .get  { background: #0369a1; color: #fff; }
+    .post { background: #15803d; color: #fff; }
+    .del  { background: #b91c1c; color: #fff; }
+    .path { font-family: monospace; font-size: 0.9rem; color: #38bdf8; }
+    .desc { color: #94a3b8; font-size: 0.8rem; margin-left: auto; }
+
+    .drift-section { max-width: 900px; margin: 0 auto 60px; padding: 0 20px; }
+    .drift-section h3 { text-align: center; font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+    .drift-row { display: flex; align-items: center; gap: 16px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px 20px; margin-bottom: 10px; }
+    .drift-phase { font-size: 0.8rem; font-weight: 700; color: #94a3b8; min-width: 70px; }
+    .drift-label { font-size: 0.85rem; font-weight: 600; flex: 1; }
+    .drift-count { font-family: monospace; font-size: 0.8rem; color: #94a3b8; }
+    .pill { padding: 3px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
+    .none   { background: #14532d; color: #4ade80; }
+    .low    { background: #713f12; color: #fbbf24; }
+    .medium { background: #7c2d12; color: #fb923c; }
+    .heavy  { background: #7f1d1d; color: #f87171; }
+
+    footer { text-align: center; padding: 20px; color: #475569; font-size: 0.75rem; border-top: 1px solid #1e293b; }
+    a { color: #38bdf8; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🔐 User Auth API</h1>
+  <span class="badge">● Live</span>
+</header>
+
+<div class="hero">
+  <h2>User Authentication Service</h2>
+  <p>A simple REST API for user registration, login, and JWT-based authentication — built to demonstrate Config Drift Detection in CI/CD pipelines.</p>
+</div>
+
+<div class="cards">
+  <div class="card">
+    <div class="icon">👤</div>
+    <h3>Register</h3>
+    <p>Create a new user account with username and password</p>
+  </div>
+  <div class="card">
+    <div class="icon">🔑</div>
+    <h3>Login</h3>
+    <p>Authenticate and receive a signed JWT access token</p>
+  </div>
+  <div class="card">
+    <div class="icon">📧</div>
+    <h3>Email Verify</h3>
+    <p>Send verification emails via SMTP on registration</p>
+  </div>
+  <div class="card">
+    <div class="icon">🌐</div>
+    <h3>OAuth</h3>
+    <p>Google login, Redis rate limiting, Stripe payments</p>
+  </div>
+</div>
+
+<div class="endpoints">
+  <h3>API Endpoints</h3>
+  <div class="endpoint">
+    <span class="method get">GET</span>
+    <span class="path">/health</span>
+    <span class="desc">Health check</span>
+  </div>
+  <div class="endpoint">
+    <span class="method post">POST</span>
+    <span class="path">/auth/register</span>
+    <span class="desc">Register new user</span>
+  </div>
+  <div class="endpoint">
+    <span class="method post">POST</span>
+    <span class="path">/auth/login</span>
+    <span class="desc">Login, get JWT token</span>
+  </div>
+  <div class="endpoint">
+    <span class="method get">GET</span>
+    <span class="path">/auth/me</span>
+    <span class="desc">Get current user</span>
+  </div>
+  <div class="endpoint">
+    <span class="method get">GET</span>
+    <span class="path">/auth/google</span>
+    <span class="desc">Google OAuth login</span>
+  </div>
+  <div class="endpoint">
+    <span class="method del">DEL</span>
+    <span class="path">/auth/me</span>
+    <span class="desc">Delete account</span>
+  </div>
+</div>
+
+<div class="drift-section">
+  <h3>Config Drift Detection — GitHub Actions Results</h3>
+
+  <div class="drift-row">
+    <span class="drift-phase">Phase 1</span>
+    <span class="drift-label">Base App <span style="color:#475569; font-weight:400; font-size:0.78rem;">— app.py only</span></span>
+    <span class="drift-count">0 vars missing</span>
+    <span class="pill none">✓ NO DRIFT</span>
+  </div>
+
+  <div class="drift-row">
+    <span class="drift-phase">Phase 2</span>
+    <span class="drift-label">+ Monitoring <span style="color:#475569; font-weight:400; font-size:0.78rem;">— SENTRY_DSN, LOG_LEVEL</span></span>
+    <span class="drift-count">2 vars missing</span>
+    <span class="pill low">⚠ LOW</span>
+  </div>
+
+  <div class="drift-row">
+    <span class="drift-phase">Phase 3</span>
+    <span class="drift-label">+ Email <span style="color:#475569; font-weight:400; font-size:0.78rem;">— SMTP_HOST, SMTP_USER, SMTP_PASSWORD…</span></span>
+    <span class="drift-count">6 vars missing</span>
+    <span class="pill medium">⚠ MEDIUM</span>
+  </div>
+
+  <div class="drift-row">
+    <span class="drift-phase">Phase 4</span>
+    <span class="drift-label">+ OAuth & Payments <span style="color:#475569; font-weight:400; font-size:0.78rem;">— GOOGLE_*, STRIPE_*, REDIS_URL…</span></span>
+    <span class="drift-count">13 vars missing</span>
+    <span class="pill heavy">✕ HEAVY — PR BLOCKED</span>
+  </div>
+</div>
+
+<footer>
+  HAW Kiel · Advanced Software Engineering · Release Engineering &nbsp;|&nbsp;
+  Team: Murali Udutha &amp; Rakesh Reddy &nbsp;|&nbsp;
+  <a href="https://github.com/UduthaMurali/user-auth-api" target="_blank">GitHub Repo</a> &nbsp;|&nbsp;
+  <a href="https://github.com/UduthaMurali/config-drift-detector" target="_blank">Drift Detector Tool</a>
+</footer>
+
+</body>
+</html>

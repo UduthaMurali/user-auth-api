@@ -4,5 +4,22 @@ services:
     ports:
       - "5000:5000"
     environment:
+      # Phase 1
       DATABASE_URL: "postgresql://user:pass@localhost/mydb"
       SECRET_KEY: "dev-secret-key"
+      # Phase 2 — added after drift detected
+      SENTRY_DSN: "https://your-sentry-dsn"
+      LOG_LEVEL: "INFO"
+      # Phase 3 — added after drift detected
+      SMTP_HOST: "smtp.gmail.com"
+      SMTP_PORT: "587"
+      SMTP_USER: "your-email@gmail.com"
+      SMTP_PASSWORD: "your-smtp-password"
+      # Phase 4 — added after drift detected
+      GOOGLE_CLIENT_ID: "your-google-client-id"
+      GOOGLE_CLIENT_SECRET: "your-google-client-secret"
+      GOOGLE_REDIRECT_URI: "http://localhost:5000/auth/callback"
+      REDIS_URL: "redis://localhost:6379"
+      STRIPE_API_KEY: "sk_test_your-stripe-key"
+      STRIPE_WEBHOOK_SECRET: "whsec_your-webhook-secret"
+      JWT_REFRESH_SECRET: "your-refresh-secret"

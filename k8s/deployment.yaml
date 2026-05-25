@@ -1,22 +1,52 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: simple-app
+  name: user-auth-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: simple-app
+      app: user-auth-api
   template:
     metadata:
       labels:
-        app: simple-app
+        app: user-auth-api
     spec:
       containers:
-        - name: simple-app
-          image: simple-app:latest
+        - name: user-auth-api
+          image: user-auth-api:latest
           env:
+            # Phase 1
             - name: DATABASE_URL
               value: "postgresql://user:pass@localhost/mydb"
             - name: SECRET_KEY
               value: "your-secret-key"
+            # Phase 2 — added after drift detected
+            - name: SENTRY_DSN
+              value: "https://your-sentry-dsn"
+            - name: LOG_LEVEL
+              value: "INFO"
+            # Phase 3 — added after drift detected
+            - name: SMTP_HOST
+              value: "smtp.gmail.com"
+            - name: SMTP_PORT
+              value: "587"
+            - name: SMTP_USER
+              value: "your-email@gmail.com"
+            - name: SMTP_PASSWORD
+              value: "your-smtp-password"
+            # Phase 4 — added after drift detected
+            - name: GOOGLE_CLIENT_ID
+              value: "your-google-client-id"
+            - name: GOOGLE_CLIENT_SECRET
+              value: "your-google-client-secret"
+            - name: GOOGLE_REDIRECT_URI
+              value: "http://localhost:5000/auth/callback"
+            - name: REDIS_URL
+              value: "redis://localhost:6379"
+            - name: STRIPE_API_KEY
+              value: "sk_test_your-stripe-key"
+            - name: STRIPE_WEBHOOK_SECRET
+              value: "whsec_your-webhook-secret"
+            - name: JWT_REFRESH_SECRET
+              value: "your-refresh-secret"
