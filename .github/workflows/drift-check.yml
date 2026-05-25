@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Drift Detector
-        uses: UduthaMurali/config-drift-detector@v1
+        uses: UduthaMurali/config-drift-detector@v1.0.0
         with:
           source-paths:  "app.py"
           config-paths:  "Dockerfile, docker-compose.yml, k8s/deployment.yaml, .env.example"
@@ -29,13 +29,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Drift Detector
-        uses: UduthaMurali/config-drift-detector@v1
+        uses: UduthaMurali/config-drift-detector@v1.0.0
         with:
           source-paths:  "app.py, monitoring.py"
           config-paths:  "Dockerfile, docker-compose.yml, k8s/deployment.yaml, .env.example"
           languages:     "python"
           fail-on-drift: "true"
-        # Missing: SENTRY_DSN (critical), LOG_LEVEL (warning)
 
   # ── Phase 3: + email.py — MEDIUM DRIFT (4 vars) ───────────────────────────
   drift-medium:
@@ -44,14 +43,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Drift Detector
-        uses: UduthaMurali/config-drift-detector@v1
+        uses: UduthaMurali/config-drift-detector@v1.0.0
         with:
           source-paths:  "app.py, monitoring.py, email.py"
           config-paths:  "Dockerfile, docker-compose.yml, k8s/deployment.yaml, .env.example"
           languages:     "python"
           fail-on-drift: "true"
-        # Missing: SENTRY_DSN, SMTP_HOST, SMTP_USER, SMTP_PASSWORD (critical)
-        #          LOG_LEVEL, SMTP_PORT (warning)
 
   # ── Phase 4: + oauth.py — HEAVY DRIFT (7 vars) ────────────────────────────
   drift-heavy:
@@ -60,13 +57,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Drift Detector
-        uses: UduthaMurali/config-drift-detector@v1
+        uses: UduthaMurali/config-drift-detector@v1.0.0
         with:
           source-paths:  "app.py, monitoring.py, email.py, oauth.py"
           config-paths:  "Dockerfile, docker-compose.yml, k8s/deployment.yaml, .env.example"
           languages:     "python"
           fail-on-drift: "true"
-        # Missing: SENTRY_DSN, SMTP_HOST, SMTP_USER, SMTP_PASSWORD,
-        #          GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, REDIS_URL,
-        #          STRIPE_API_KEY, STRIPE_WEBHOOK_SECRET, JWT_REFRESH_SECRET (critical)
-        #          LOG_LEVEL, SMTP_PORT, OAUTH_REDIRECT_URI (warning)
