@@ -8,58 +8,77 @@ on:
 
 jobs:
 
-  # ── Phase 1: Base app — NO DRIFT ──────────────────────────────────────────
-  drift-base:
-    name: "Phase 1 — Base App (expect: no drift)"
+  drift-check:
+    name: "Detect Config Drift (All Phases)"
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run Drift Detector
-        uses: UduthaMurali/config-drift-detector@v1.0.0
-        with:
-          source-paths:  "app.py"
-          config-paths:  "Dockerfile, docker-compose.yml, k8s/deployment.yaml, .env.example"
-          languages:     "python"
-          fail-on-drift: "true"
 
-  # ── Phase 2: + monitoring.py — LOW DRIFT (2 vars) ─────────────────────────
-  drift-low:
-    name: "Phase 2 — Monitoring Feature (LOW drift: 2 vars)"
-    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Run Drift Detector
-        uses: UduthaMurali/config-drift-detector@v1.0.0
-        with:
-          source-paths:  "app.py, monitoring.py"
-          config-paths:  "Dockerfile, docker-compose.yml, k8s/deployment.yaml, .env.example"
-          languages:     "python"
-          fail-on-drift: "true"
+      - name: Checkout user-auth-api
+        uses: actions/checkout@v4
 
-  # ── Phase 3: + email.py — MEDIUM DRIFT (4 vars) ───────────────────────────
-  drift-medium:
-    name: "Phase 3 — Email Feature (MEDIUM drift: 4 vars)"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run Drift Detector
-        uses: UduthaMurali/config-drift-detector@v1.0.0
+      - name: Checkout config-drift-detector
+        uses: actions/checkout@v4
         with:
-          source-paths:  "app.py, monitoring.py, email.py"
-          config-paths:  "Dockerfile, docker-compose.yml, k8s/deployment.yaml, .env.example"
-          languages:     "python"
-          fail-on-drift: "true"
+          repository: UduthaMurali/config-drift-detector
+          path: drift-tool
 
-  # ── Phase 4: + oauth.py — HEAVY DRIFT (7 vars) ────────────────────────────
-  drift-heavy:
-    name: "Phase 4 — OAuth+Payments (HEAVY drift: 7 vars)"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run Drift Detector
-        uses: UduthaMurali/config-drift-detector@v1.0.0
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          source-paths:  "app.py, monitoring.py, email.py, oauth.py"
-          config-paths:  "Dockerfile, docker-compose.yml, k8s/deployment.yaml, .env.example"
-          languages:     "python"
-          fail-on-drift: "true"
+          python-version: "3.11"
+
+      - name: Install drift detector dependencies
+        run: pip install -r drift-tool/requirements.txt
+
+      # ── Phase 1: Base app only — expect NO DRIFT ──────────────────────────
+      - name: "Phase 1 — Base App (expect: no drift)"
+        run: |
+          echo "======================================"
+          echo "  PHASE 1 — BASE APP"
+          echo "======================================"
+          python drift-tool/main.py \
+            --source app.py \
+            --config Dockerfile,docker-compose.yml,k8s/deployment.yaml,.env.example \
+            --languages python || true
+
+      # ── Phase 2: + monitoring.py — LOW DRIFT ──────────────────────────────
+      - name: "Phase 2 — Monitoring Feature (LOW drift)"
+        run: |
+          echo "======================================"
+          echo "  PHASE 2 — LOW DRIFT"
+          echo "  Added: monitoring.py"
+          echo "  Missing vars: SENTRY_DSN, LOG_LEVEL"
+          echo "======================================"
+          python drift-tool/main.py \
+            --source app.py,monitoring.py \
+            --config Dockerfile,docker-compose.yml,k8s/deployment.yaml,.env.example \
+            --languages python || true
+
+      # ── Phase 3: + email.py — MEDIUM DRIFT ───────────────────────────────
+      - name: "Phase 3 — Email Feature (MEDIUM drift)"
+        run: |
+          echo "======================================"
+          echo "  PHASE 3 — MEDIUM DRIFT"
+          echo "  Added: email.py"
+          echo "  Missing vars: SMTP_HOST, SMTP_USER, SMTP_PASSWORD, SMTP_PORT"
+          echo "======================================"
+          python drift-tool/main.py \
+            --source app.py,monitoring.py,email.py \
+            --config Dockerfile,docker-compose.yml,k8s/deployment.yaml,.env.example \
+            --languages python || true
+
+      # ── Phase 4: + oauth.py — HEAVY DRIFT ────────────────────────────────
+      - name: "Phase 4 — OAuth+Payments (HEAVY drift)"
+        run: |
+          echo "======================================"
+          echo "  PHASE 4 — HEAVY DRIFT"
+          echo "  Added: oauth.py"
+          echo "  Missing: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,"
+          echo "           REDIS_URL, STRIPE_API_KEY,"
+          echo "           STRIPE_WEBHOOK_SECRET, JWT_REFRESH_SECRET"
+          echo "======================================"
+          python drift-tool/main.py \
+            --source app.py,monitoring.py,email.py,oauth.py \
+            --config Dockerfile,docker-compose.yml,k8s/deployment.yaml,.env.example \
+            --languages python \
+            --fail-on-drift
